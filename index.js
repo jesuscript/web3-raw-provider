@@ -14,7 +14,7 @@ var RawProvider = function(host,pk){
 RawProvider.prototype = _.extend({}, HttpProvider.prototype, {
   setPrivateKey: function(pk){
     this._pk = pk;
-    this._address = ethUtils.privateToAddress(pk).toString("hex");
+    this._address = "0x"+ethUtils.privateToAddress(pk).toString("hex");
   },
   sendAsync: function(payload, callback){
     return HttpProvider.prototype.sendAsync.call(this, this._process(payload), function(){
