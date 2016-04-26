@@ -8,15 +8,13 @@ var HttpProvider = Web3.providers.HttpProvider;
 
 var RawProvider = function(host,pk){
   HttpProvider.call(this, host);
-
-  this._address = ethUtils.privateToAddress(pk).toString("hex");
-
   if(pk) this.setPrivateKey(pk);
 };
 
 RawProvider.prototype = _.extend({}, HttpProvider.prototype, {
   setPrivateKey: function(pk){
     this._pk = pk;
+    this._address = ethUtils.privateToAddress(pk).toString("hex");
   },
   sendAsync: function(payload, callback){
     return HttpProvider.prototype.sendAsync.call(this, this._process(payload), function(){
