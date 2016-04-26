@@ -7,13 +7,11 @@ var Tx = require('ethereumjs-tx'),
 var HttpProvider = Web3.providers.HttpProvider;
 
 var RawProvider = function(host,pk){
-  if(!pk) throw new Error("Private key must be provided");
-  
   HttpProvider.call(this, host);
 
   this._address = ethUtils.privateToAddress(pk).toString("hex");
 
-  this.setPrivateKey(pk);
+  if(pk) this.setPrivateKey(pk);
 };
 
 RawProvider.prototype = _.extend({}, HttpProvider.prototype, {
