@@ -17,39 +17,47 @@ RawProvider.prototype = _.extend({}, HttpProvider.prototype, {
     this._address = "0x"+ethUtils.privateToAddress(pk).toString("hex");
   },
   sendAsync: function(payload, callback){
-    return HttpProvider.prototype.sendAsync.call(this, this._process(payload), function(){
-      callback.apply(null,arguments); 
-    });
+    return this._process(payload, (err, payload) => {
+      HttpProvider.prototype.sendAsync.call(this, payload, function(){
+        callback.apply(null,arguments); 
+      });
+    })
   },
-  send: function(payload, callback){
+  send: function(payload){
     return HttpProvider.prototype.send.call(this, this._process(payload));
   },
-  _process: function(payload){
+  _process: function(payload,cb){
     if(payload.method === "eth_sendTransaction"){
-      var data = payload.params[0].data;
+      if(!cb) throw new Error("sync sendTransaction is not supported")
 
-      var tx = _.extend(new Tx(), payload.params[0], {
-        nonce: parseInt(this.send({
-          jsonrpc: "2.0",
-          method: "eth_getTransactionCount",
-          params: [this._address, "pending"],
-          id: 1
-        }).result),
-        gasLimit: payload.params[0].gas || 22000,
-        data: (data && !_.startsWith(data,"0x")) ? ("0x"+data) : data
-      });
-
-      tx.sign(this._pk);
-      
-      payload =  {
+      this.sendAsync({
         jsonrpc: "2.0",
-        method: "eth_sendRawTransaction",
-        id: payload.id,
-        params: ['0x' + tx.serialize().toString('hex')]
-      };
-    }
+        method: "eth_getTransactionCount",
+        params: [this._address, "pending"],
+        id: 1
+      }, (err, res) => {
+        var data = payload.params[0].data;
 
-    return payload;
+        var tx = _.extend(new Tx(), payload.params[0], {
+          nonce: res.result,
+          gasLimit: payload.params[0].gas || 22000,
+          data: (data && !_.startsWith(data,"0x")) ? ("0x"+data) : data
+        });
+        console.log(this._pk, this);
+        tx.sign(this._pk);
+        
+        payload =  {
+          jsonrpc: "2.0",
+          method: "eth_sendRawTransaction",
+          id: payload.id,
+          params: ['0x' + tx.serialize().toString('hex')]
+        };
+
+        cb(err, payload)
+      })
+    }else{
+      return cb ? cb(null, payload) : payload
+    }
   }
 });
 
