@@ -17,8 +17,10 @@ RawProvider.prototype = _.extend({}, HttpProvider.prototype, {
     this._address = "0x"+ethUtils.privateToAddress(pk).toString("hex");
   },
   sendAsync: function(payload, callback){
-    return this._process(payload, (err, payload) => {
-      HttpProvider.prototype.sendAsync.call(this, payload, function(){
+    var self = this;
+    
+    return this._process(payload, function(err, payload){
+      HttpProvider.prototype.sendAsync.call(self, payload, function(){
         callback.apply(null,arguments); 
       });
     })
@@ -30,12 +32,14 @@ RawProvider.prototype = _.extend({}, HttpProvider.prototype, {
     if(payload.method === "eth_sendTransaction"){
       if(!cb) throw new Error("sync sendTransaction is not supported")
 
+      var self = this;
+
       this.sendAsync({
         jsonrpc: "2.0",
         method: "eth_getTransactionCount",
         params: [this._address, "pending"],
         id: 1
-      }, (err, res) => {
+      }, function(err, res){
         var data = payload.params[0].data;
 
         var tx = _.extend(new Tx(), payload.params[0], {
@@ -43,8 +47,8 @@ RawProvider.prototype = _.extend({}, HttpProvider.prototype, {
           gasLimit: payload.params[0].gas || 22000,
           data: (data && !_.startsWith(data,"0x")) ? ("0x"+data) : data
         });
-        console.log(this._pk, this);
-        tx.sign(this._pk);
+        console.log(self._pk, self);
+        tx.sign(self._pk);
         
         payload =  {
           jsonrpc: "2.0",
