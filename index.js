@@ -47,7 +47,7 @@ RawProvider.prototype = _.extend({}, HttpProvider.prototype, {
           gasLimit: payload.params[0].gas || 22000,
           data: (data && !_.startsWith(data,"0x")) ? ("0x"+data) : data
         });
-        console.log(self._pk, self);
+
         tx.sign(self._pk);
         
         payload =  {
