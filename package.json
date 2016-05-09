@@ -1,6 +1,6 @@
 {
   "name": "web3-raw-provider",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "An HTTP provider for web3 that uses only raw transactions",
   "license": "MIT",
   "repository": {
